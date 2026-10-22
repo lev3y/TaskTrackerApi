@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Models;
 
@@ -75,6 +76,33 @@ namespace TaskTrackerApi.Services
             };
 
             project.Tasks.Add(task);
+
+            return new TaskResponseDto
+            {
+                Id = task.Id,
+                ProjectId = task.ProjectId,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status.ToString(),
+                DueDate = task.DueDate,
+                CreatedAt = task.CreatedAt
+            };
+        }
+
+        public TaskResponseDto? UpdateTask(int taskId, TaskRequestDto dto)
+        {
+            var task = ProjectStore.Projects
+                .SelectMany(p => p.Tasks)
+                .FirstOrDefault(t => t.Id == taskId);
+            if (task == null)
+            {
+                return null;
+            }
+
+            task.Title = dto.Title.Trim();
+            task.Description = dto.Description;
+            task.Status = dto.Status;
+            task.DueDate = dto.DueDate;
 
             return new TaskResponseDto
             {

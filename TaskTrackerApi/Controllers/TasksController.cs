@@ -54,5 +54,17 @@ namespace TaskTrackerApi.Controllers
                 result
             );
         }
+
+        [HttpPut("{id}")]
+        public ActionResult<TaskResponseDto> UpdateTask(int id, TaskRequestDto dto)
+        {
+            var result = _taskService.UpdateTask(id, dto);
+            if (result == null)
+            {
+                return NotFound("Task not found");
+            }
+
+            return Ok(result);
+        }
     }
 }
