@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskTrackerApi.Data;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Models;
 
@@ -6,9 +7,17 @@ namespace TaskTrackerApi.Services
 {
     public class TaskService
     {
+        private readonly AppDbContext _context;
+        public TaskService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public List<TaskResponseDto>? GetTasks(int projectId)
         {
-            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == projectId);
+            var project = _context.Projects
+                .Include(p => p.Tasks)
+                .FirstOrDefault(p => p.Id == projectId);
             if (project == null)
             {
                 return null;
@@ -30,9 +39,7 @@ namespace TaskTrackerApi.Services
 
         public TaskResponseDto? GetTask(int taskId)
         {
-            var task = ProjectStore.Projects
-                .SelectMany(p => p.Tasks)
-                .FirstOrDefault(t => t.Id == taskId);
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
             if (task == null)
             {
                 return null;
@@ -52,21 +59,14 @@ namespace TaskTrackerApi.Services
 
         public TaskResponseDto? CreateTask(int projectId, TaskRequestDto dto)
         {
-            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == projectId);
+            var project = _context.Projects.FirstOrDefault(p => p.Id == projectId);
             if (project == null)
             {
                 return null;
             }
 
-            int newId = ProjectStore.Projects
-                .SelectMany(p => p.Tasks)
-                .Any()
-                    ? ProjectStore.Projects.SelectMany(p => p.Tasks).Max(p => p.Id) + 1
-                    : 1;
-
             var task = new TaskItem
             {
-                Id = newId,
                 ProjectId = projectId,
                 Title = dto.Title,
                 Description = dto.Description,
@@ -75,7 +75,8 @@ namespace TaskTrackerApi.Services
                 CreatedAt = DateTime.UtcNow,
             };
 
-            project.Tasks.Add(task);
+            _context.Tasks.Add(task);
+            _context.SaveChanges();
 
             return new TaskResponseDto
             {
@@ -91,9 +92,7 @@ namespace TaskTrackerApi.Services
 
         public TaskResponseDto? UpdateTask(int taskId, TaskRequestDto dto)
         {
-            var task = ProjectStore.Projects
-                .SelectMany(p => p.Tasks)
-                .FirstOrDefault(t => t.Id == taskId);
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
             if (task == null)
             {
                 return null;
@@ -103,6 +102,7 @@ namespace TaskTrackerApi.Services
             task.Description = dto.Description;
             task.Status = dto.Status;
             task.DueDate = dto.DueDate;
+            _context.SaveChanges();
 
             return new TaskResponseDto
             {
@@ -118,16 +118,15 @@ namespace TaskTrackerApi.Services
 
         public bool DeleteTask(int taskId)
         {
-            var task = ProjectStore.Projects
-                .SelectMany(p => p.Tasks)
-                .FirstOrDefault(t => t.Id == taskId);
+            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
             if (task == null)
             {
                 return false;
             }
 
-            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == task.ProjectId);
-            project!.Tasks.Remove(task);
+            _context.Tasks.Remove(task);
+            _context.SaveChanges();
+
             return true;
         }
     }

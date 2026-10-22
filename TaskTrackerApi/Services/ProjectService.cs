@@ -1,5 +1,4 @@
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Http.HttpResults;
+using TaskTrackerApi.Data;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Models;
 
@@ -7,9 +6,15 @@ namespace TaskTrackerApi.Services
 {
     public class ProjectService
     {
+        private readonly AppDbContext _context;
+        public ProjectService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public List<ProjectResponseDto> GetProjects()
         {
-            var result = ProjectStore.Projects.Select(p => new ProjectResponseDto
+            var result = _context.Projects.Select(p => new ProjectResponseDto
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -23,7 +28,7 @@ namespace TaskTrackerApi.Services
 
         public ProjectResponseDto? GetProject(int id)
         {
-            var result = ProjectStore.Projects.FirstOrDefault(p => p.Id == id);
+            var result = _context.Projects.FirstOrDefault(p => p.Id == id);
             if (result == null)
             {
                 return null;
@@ -35,26 +40,21 @@ namespace TaskTrackerApi.Services
                 Name = result.Name,
                 Description = result.Description,
                 CreatedAt = result.CreatedAt,
-                TotalTasks = result.Tasks.Count
+                TotalTasks = _context.Tasks.Count(t => t.ProjectId == result.Id)
             };
         }
 
         public ProjectResponseDto CreateProject(ProjectRequestDto dto)
         {
-            // Find the larget id in project then increase 1, if none found then use 1
-            int newId = ProjectStore.Projects.Any()
-                ? ProjectStore.Projects.Max(p => p.Id) + 1
-                : 1;
-
             var project = new Project
             {
-                Id = newId,
                 Name = dto.Name.Trim(),
                 Description = dto.Description,
                 CreatedAt = DateTime.UtcNow,
             };
 
-            ProjectStore.Projects.Add(project);
+            _context.Projects.Add(project);
+            _context.SaveChanges();
 
             return new ProjectResponseDto
             {
@@ -62,13 +62,13 @@ namespace TaskTrackerApi.Services
                 Name = project.Name,
                 Description = project.Description,
                 CreatedAt = project.CreatedAt,
-                TotalTasks = project.Tasks.Count
+                TotalTasks = 0
             };
         }
 
         public ProjectResponseDto? UpdateProject(int id, ProjectRequestDto dto)
         {
-            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == id);
+            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
             if (project == null)
             {
                 return null;
@@ -76,6 +76,7 @@ namespace TaskTrackerApi.Services
 
             project.Name = dto.Name.Trim();
             project.Description = dto.Description;
+            _context.SaveChanges();
 
             return new ProjectResponseDto
             {
@@ -83,19 +84,20 @@ namespace TaskTrackerApi.Services
                 Name = project.Name,
                 Description = project.Description,
                 CreatedAt = project.CreatedAt,
-                TotalTasks = project.Tasks.Count
+                TotalTasks = _context.Tasks.Count(t => t.ProjectId == id)
             };
         }
 
         public bool DeleteProject(int id)
         {
-            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == id);
+            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
             if (project == null)
             {
                 return false;
             }
 
-            ProjectStore.Projects.Remove(project);
+            _context.Projects.Remove(project);
+            _context.SaveChanges();
             return true;
         }
     }
