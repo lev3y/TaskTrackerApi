@@ -26,10 +26,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// DB initializer, insert sample data if the db is empty
+// DB initializer, also insert sample data if the db is empty
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate();
     DbInitializer.Initialize(context);
 }
 
