@@ -31,5 +31,15 @@ namespace TaskTrackerApi.Controllers
             }
             return Ok(result); 
         }
+
+        [HttpPost]
+        public ActionResult<ProjectResponseDto> CreateProject(ProjectRequestDto dto)
+        {
+            var result = _projectService.CreateProject(dto);
+            return CreatedAtAction(
+                nameof(GetProject),
+                new { id = result.Id },
+                result);
+        }
     }
 }

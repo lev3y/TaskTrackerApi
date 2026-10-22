@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Http.HttpResults;
 using TaskTrackerApi.DTOs;
+using TaskTrackerApi.Models;
 
 namespace TaskTrackerApi.Services
 {
@@ -33,6 +36,33 @@ namespace TaskTrackerApi.Services
                 Description = result.Description,
                 CreatedAt = result.CreatedAt,
                 TotalTasks = result.Tasks.Count
+            };
+        }
+
+        public ProjectResponseDto CreateProject(ProjectRequestDto dto)
+        {
+            // Find the larget id in project then increase 1, if none found then use 1
+            int newId = ProjectStore.Projects.Any()
+                ? ProjectStore.Projects.Max(p => p.Id) + 1
+                : 1;
+
+            var project = new Project
+            {
+                Id = newId,
+                Name = dto.Name.Trim(),
+                Description = dto.Description,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            ProjectStore.Projects.Add(project);
+
+            return new ProjectResponseDto
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TotalTasks = project.Tasks.Count
             };
         }
     }
