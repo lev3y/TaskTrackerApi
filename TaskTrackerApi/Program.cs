@@ -1,4 +1,6 @@
 using TaskTrackerApi.Services;
+using Microsoft.EntityFrameworkCore;
+using TaskTrackerApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,17 @@ builder.Services.AddScoped<TaskService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=tasktracker.db"));
+
 var app = builder.Build();
+
+// DB initializer, insert sample data if the db is empty
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    DbInitializer.Initialize(context);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
