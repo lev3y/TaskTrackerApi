@@ -115,5 +115,20 @@ namespace TaskTrackerApi.Services
                 CreatedAt = task.CreatedAt
             };
         }
+
+        public bool DeleteTask(int taskId)
+        {
+            var task = ProjectStore.Projects
+                .SelectMany(p => p.Tasks)
+                .FirstOrDefault(t => t.Id == taskId);
+            if (task == null)
+            {
+                return false;
+            }
+
+            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == task.ProjectId);
+            project!.Tasks.Remove(task);
+            return true;
+        }
     }
 }

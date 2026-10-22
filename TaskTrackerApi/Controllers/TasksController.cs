@@ -47,7 +47,7 @@ namespace TaskTrackerApi.Controllers
             {
                 return BadRequest("Invalid task status. Only 'Todo', 'InProgress', 'Done' is accepted");
             }
-            
+
             var result = _taskService.CreateTask(id, dto);
             if (result == null)
             {
@@ -77,5 +77,16 @@ namespace TaskTrackerApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteTask(int id)
+        {
+            var result = _taskService.DeleteTask(id);
+            if (!result)
+            {
+                return NotFound("Task not found");
+            }
+            return NoContent();
+        } 
     }
 }
