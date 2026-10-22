@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Services;
@@ -15,16 +16,16 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<ProjectResponseDto>> GetProjects()
+        public async Task<ActionResult<List<ProjectResponseDto>>> GetProjects()
         {
-            var result = _projectService.GetProjects();
+            var result = await _projectService.GetProjects();
             return Ok(result);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ProjectResponseDto> GetProject(int id)
+        public async Task<ActionResult<ProjectResponseDto>> GetProject(int id)
         {
-            var result = _projectService.GetProject(id);
+            var result = await _projectService.GetProject(id);
             if (result == null)
             {
                 return NotFound("Project not found");
@@ -33,9 +34,9 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<ProjectResponseDto> CreateProject(ProjectRequestDto dto)
+        public async Task<ActionResult<ProjectResponseDto>> CreateProject(ProjectRequestDto dto)
         {
-            var result = _projectService.CreateProject(dto);
+            var result = await _projectService.CreateProject(dto);
             return CreatedAtAction(
                 nameof(GetProject),
                 new { id = result.Id },
@@ -43,9 +44,9 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult<ProjectRequestDto> UpdateProject(int id, ProjectRequestDto dto)
+        public async Task<ActionResult<ProjectRequestDto>> UpdateProject(int id, ProjectRequestDto dto)
         {
-            var result = _projectService.UpdateProject(id, dto);
+            var result = await _projectService.UpdateProject(id, dto);
             if (result == null)
             {
                 return NotFound("Project not found");
@@ -55,9 +56,9 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteProject(int id)
+        public async Task<IActionResult> DeleteProject(int id)
         {
-            var result = _projectService.DeleteProject(id);
+            var result = await _projectService.DeleteProject(id);
             if (!result)
             {
                 return NotFound("Project not found");

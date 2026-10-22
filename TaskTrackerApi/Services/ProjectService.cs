@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TaskTrackerApi.Data;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Models;
@@ -12,23 +13,23 @@ namespace TaskTrackerApi.Services
             _context = context;
         }
 
-        public List<ProjectResponseDto> GetProjects()
+        public async Task<List<ProjectResponseDto>> GetProjects()
         {
-            var result = _context.Projects.Select(p => new ProjectResponseDto
+            var result = await _context.Projects.Select(p => new ProjectResponseDto
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
                 CreatedAt = p.CreatedAt,
                 TotalTasks = p.Tasks.Count
-            }).ToList();
+            }).ToListAsync();
 
             return result;
         }
 
-        public ProjectResponseDto? GetProject(int id)
+        public async Task<ProjectResponseDto?> GetProject(int id)
         {
-            var result = _context.Projects.FirstOrDefault(p => p.Id == id);
+            var result = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
             if (result == null)
             {
                 return null;
@@ -44,7 +45,7 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public ProjectResponseDto CreateProject(ProjectRequestDto dto)
+        public async Task<ProjectResponseDto> CreateProject(ProjectRequestDto dto)
         {
             var project = new Project
             {
@@ -54,7 +55,7 @@ namespace TaskTrackerApi.Services
             };
 
             _context.Projects.Add(project);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new ProjectResponseDto
             {
@@ -66,9 +67,9 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public ProjectResponseDto? UpdateProject(int id, ProjectRequestDto dto)
+        public async Task<ProjectResponseDto?> UpdateProject(int id, ProjectRequestDto dto)
         {
-            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
             if (project == null)
             {
                 return null;
@@ -76,7 +77,7 @@ namespace TaskTrackerApi.Services
 
             project.Name = dto.Name.Trim();
             project.Description = dto.Description;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new ProjectResponseDto
             {
@@ -88,16 +89,16 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public bool DeleteProject(int id)
+        public async Task<bool> DeleteProject(int id)
         {
-            var project = _context.Projects.FirstOrDefault(p => p.Id == id);
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == id);
             if (project == null)
             {
                 return false;
             }
 
             _context.Projects.Remove(project);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
     }

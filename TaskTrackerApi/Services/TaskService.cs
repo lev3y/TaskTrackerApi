@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TaskTrackerApi.Data;
 using TaskTrackerApi.DTOs;
@@ -13,11 +14,11 @@ namespace TaskTrackerApi.Services
             _context = context;
         }
 
-        public List<TaskResponseDto>? GetTasks(int projectId)
+        public async Task<List<TaskResponseDto>?> GetTasks(int projectId)
         {
-            var project = _context.Projects
+            var project = await _context.Projects
                 .Include(p => p.Tasks)
-                .FirstOrDefault(p => p.Id == projectId);
+                .FirstOrDefaultAsync(p => p.Id == projectId);
             if (project == null)
             {
                 return null;
@@ -37,9 +38,9 @@ namespace TaskTrackerApi.Services
             return result;
         }
 
-        public TaskResponseDto? GetTask(int taskId)
+        public async Task<TaskResponseDto?> GetTask(int taskId)
         {
-            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
             {
                 return null;
@@ -57,9 +58,9 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public TaskResponseDto? CreateTask(int projectId, TaskRequestDto dto)
+        public async Task<TaskResponseDto?> CreateTask(int projectId, TaskRequestDto dto)
         {
-            var project = _context.Projects.FirstOrDefault(p => p.Id == projectId);
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
             if (project == null)
             {
                 return null;
@@ -76,7 +77,7 @@ namespace TaskTrackerApi.Services
             };
 
             _context.Tasks.Add(task);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new TaskResponseDto
             {
@@ -90,9 +91,9 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public TaskResponseDto? UpdateTask(int taskId, TaskRequestDto dto)
+        public async Task<TaskResponseDto?> UpdateTask(int taskId, TaskRequestDto dto)
         {
-            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
             {
                 return null;
@@ -102,7 +103,7 @@ namespace TaskTrackerApi.Services
             task.Description = dto.Description;
             task.Status = dto.Status;
             task.DueDate = dto.DueDate;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return new TaskResponseDto
             {
@@ -116,16 +117,16 @@ namespace TaskTrackerApi.Services
             };
         }
 
-        public bool DeleteTask(int taskId)
+        public async Task<bool> DeleteTask(int taskId)
         {
-            var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
             {
                 return false;
             }
 
             _context.Tasks.Remove(task);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return true;
         }

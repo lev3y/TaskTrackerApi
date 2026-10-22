@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Services;
 using TaskTrackerApi.Models;
+using System.Threading.Tasks;
 
 namespace TaskTrackerApi.Controllers
 {
@@ -17,9 +18,9 @@ namespace TaskTrackerApi.Controllers
 
         // Override the controller default to match the route, since I want put all task-related endpoint in same controller
         [HttpGet("~/api/projects/{id}/tasks")]
-        public ActionResult<List<TaskResponseDto>> GetTasks(int id)
+        public async Task<ActionResult<List<TaskResponseDto>>> GetTasks(int id)
         {
-            var result = _taskService.GetTasks(id);
+            var result = await _taskService.GetTasks(id);
             if (result == null)
             {
                 return NotFound("Tasks not found (Project ID does not exist)");
@@ -29,9 +30,9 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<TaskResponseDto> GetTask(int id)
+        public async Task<ActionResult<TaskResponseDto>> GetTask(int id)
         {
-            var result = _taskService.GetTask(id);
+            var result = await _taskService.GetTask(id);
             if (result == null)
             {
                 return NotFound("Task not found");
@@ -41,14 +42,14 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpPost("~/api/projects/{id}/tasks")]
-        public ActionResult<TaskResponseDto> CreateTask(int id, TaskRequestDto dto)
+        public async Task<ActionResult<TaskResponseDto>> CreateTask(int id, TaskRequestDto dto)
         {
             if (!Enum.IsDefined(typeof(TaskItemStatus), dto.Status))
             {
                 return BadRequest("Invalid task status. Only 'Todo', 'InProgress', 'Done' is accepted");
             }
 
-            var result = _taskService.CreateTask(id, dto);
+            var result = await _taskService.CreateTask(id, dto);
             if (result == null)
             {
                 return NotFound("Project not found");
@@ -62,14 +63,14 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult<TaskResponseDto> UpdateTask(int id, TaskRequestDto dto)
+        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, TaskRequestDto dto)
         {
             if (!Enum.IsDefined(typeof(TaskItemStatus), dto.Status))
             {
                 return BadRequest("Invalid task status. Only 'Todo', 'InProgress', 'Done' is accepted");
             }
 
-            var result = _taskService.UpdateTask(id, dto);
+            var result = await _taskService.UpdateTask(id, dto);
             if (result == null)
             {
                 return NotFound("Task not found");
@@ -79,9 +80,9 @@ namespace TaskTrackerApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteTask(int id)
+        public async Task<IActionResult> DeleteTask(int id)
         {
-            var result = _taskService.DeleteTask(id);
+            var result = await _taskService.DeleteTask(id);
             if (!result)
             {
                 return NotFound("Task not found");
