@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace TaskTrackerApi.DTOs
 {
     public class ProjectResponseDto
