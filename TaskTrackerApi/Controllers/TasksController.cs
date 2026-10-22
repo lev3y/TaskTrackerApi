@@ -38,5 +38,21 @@ namespace TaskTrackerApi.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("~/api/projects/{id}/tasks")]
+        public ActionResult<TaskResponseDto> CreateTask(int id, TaskRequestDto dto)
+        {
+            var result = _taskService.CreateTask(id, dto);
+            if (result == null)
+            {
+                return NotFound("Project not found");
+            }
+
+            return CreatedAtAction(
+                nameof(GetTask),
+                new { id = result.Id },
+                result
+            );
+        }
     }
 }

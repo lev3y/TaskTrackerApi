@@ -1,4 +1,5 @@
 using TaskTrackerApi.DTOs;
+using TaskTrackerApi.Models;
 
 namespace TaskTrackerApi.Services
 {
@@ -35,6 +36,45 @@ namespace TaskTrackerApi.Services
             {
                 return null;
             }
+
+            return new TaskResponseDto
+            {
+                Id = task.Id,
+                ProjectId = task.ProjectId,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status.ToString(),
+                DueDate = task.DueDate,
+                CreatedAt = task.CreatedAt
+            };
+        }
+
+        public TaskResponseDto? CreateTask(int projectId, TaskRequestDto dto)
+        {
+            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == projectId);
+            if (project == null)
+            {
+                return null;
+            }
+
+            int newId = ProjectStore.Projects
+                .SelectMany(p => p.Tasks)
+                .Any()
+                    ? ProjectStore.Projects.SelectMany(p => p.Tasks).Max(p => p.Id) + 1
+                    : 1;
+
+            var task = new TaskItem
+            {
+                Id = newId,
+                ProjectId = projectId,
+                Title = dto.Title,
+                Description = dto.Description,
+                Status = dto.Status,
+                DueDate = dto.DueDate,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            project.Tasks.Add(task);
 
             return new TaskResponseDto
             {
