@@ -86,5 +86,17 @@ namespace TaskTrackerApi.Services
                 TotalTasks = project.Tasks.Count
             };
         }
+
+        public bool DeleteProject(int id)
+        {
+            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == id);
+            if (project == null)
+            {
+                return false;
+            }
+
+            ProjectStore.Projects.Remove(project);
+            return true;
+        }
     }
 }

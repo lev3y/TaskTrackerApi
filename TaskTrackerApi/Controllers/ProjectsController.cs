@@ -53,5 +53,17 @@ namespace TaskTrackerApi.Controllers
             
             return Ok(result);
         }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteProject(int id)
+        {
+            var result = _projectService.DeleteProject(id);
+            if (!result)
+            {
+                return NotFound("Project not found");
+            }
+
+            return NoContent();
+        }
     }
 }
