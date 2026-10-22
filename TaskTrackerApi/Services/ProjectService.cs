@@ -11,7 +11,8 @@ namespace TaskTrackerApi.Services
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description,
-                CreatedAt = p.CreatedAt
+                CreatedAt = p.CreatedAt,
+                TotalTasks = p.Tasks.Count
             }).ToList();
 
             return result;
@@ -30,7 +31,8 @@ namespace TaskTrackerApi.Services
                 Id = result.Id,
                 Name = result.Name,
                 Description = result.Description,
-                CreatedAt = result.CreatedAt
+                CreatedAt = result.CreatedAt,
+                TotalTasks = result.Tasks.Count
             };
         }
     }
