@@ -65,5 +65,26 @@ namespace TaskTrackerApi.Services
                 TotalTasks = project.Tasks.Count
             };
         }
+
+        public ProjectResponseDto? UpdateProject(int id, ProjectRequestDto dto)
+        {
+            var project = ProjectStore.Projects.FirstOrDefault(p => p.Id == id);
+            if (project == null)
+            {
+                return null;
+            }
+
+            project.Name = dto.Name.Trim();
+            project.Description = dto.Description;
+
+            return new ProjectResponseDto
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TotalTasks = project.Tasks.Count
+            };
+        }
     }
 }

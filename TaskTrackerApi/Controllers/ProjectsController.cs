@@ -41,5 +41,17 @@ namespace TaskTrackerApi.Controllers
                 new { id = result.Id },
                 result);
         }
+
+        [HttpPut("{id}")]
+        public ActionResult<ProjectRequestDto> UpdateProject(int id, ProjectRequestDto dto)
+        {
+            var result = _projectService.UpdateProject(id, dto);
+            if (result == null)
+            {
+                return NotFound("Project not found");
+            }
+            
+            return Ok(result);
+        }
     }
 }
