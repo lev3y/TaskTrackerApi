@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskTrackerApi.DTOs;
 using TaskTrackerApi.Services;
+using TaskTrackerApi.Models;
 
 namespace TaskTrackerApi.Controllers
 {
@@ -42,6 +43,11 @@ namespace TaskTrackerApi.Controllers
         [HttpPost("~/api/projects/{id}/tasks")]
         public ActionResult<TaskResponseDto> CreateTask(int id, TaskRequestDto dto)
         {
+            if (!Enum.IsDefined(typeof(TaskItemStatus), dto.Status))
+            {
+                return BadRequest("Invalid task status. Only 'Todo', 'InProgress', 'Done' is accepted");
+            }
+            
             var result = _taskService.CreateTask(id, dto);
             if (result == null)
             {
@@ -58,6 +64,11 @@ namespace TaskTrackerApi.Controllers
         [HttpPut("{id}")]
         public ActionResult<TaskResponseDto> UpdateTask(int id, TaskRequestDto dto)
         {
+            if (!Enum.IsDefined(typeof(TaskItemStatus), dto.Status))
+            {
+                return BadRequest("Invalid task status. Only 'Todo', 'InProgress', 'Done' is accepted");
+            }
+
             var result = _taskService.UpdateTask(id, dto);
             if (result == null)
             {
