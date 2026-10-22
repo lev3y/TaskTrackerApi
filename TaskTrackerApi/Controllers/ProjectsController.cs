@@ -21,7 +21,7 @@ namespace TaskTrackerApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public ActionResult<ProjectResponseDto> GetProject(int id)
         {
             var result = _projectService.GetProject(id);

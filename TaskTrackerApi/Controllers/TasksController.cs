@@ -27,7 +27,7 @@ namespace TaskTrackerApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public ActionResult<TaskResponseDto> GetTask(int id)
         {
             var result = _taskService.GetTask(id);
