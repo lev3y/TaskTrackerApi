@@ -1,7 +1,76 @@
-﻿@page "/"
+﻿
+@page "/"   // set this page as root
+@using TaskTrackerWeb.Models
+@inject HttpClient Http  // give the page http which use to send HTTP request to api 
 
-<PageTitle>Home</PageTitle>
+<h3>Projects</h3>
 
-<h1>Hello, world!</h1>
+@if (projects == null)
+{
+    <p>Loading projects...</p>
+}
+else
+{
+    @foreach (var project in projects)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <h5 class="mb-3">@project.Name</h5>
+                <p class="mb-1">@project.Description</p>
+                <p class="mb-1">Tasks: @project.TotalTasks</p>
+                <p class="mb-2 text-muted" style="font-size: 0.8rem">Created At: @project.CreatedAt.ToString("dd/MM/yyyy")</p>
+                <button class="btn btn-primary" @onclick="() => LoadTasks(project.Id)">
+                    View Tasks
+                </button>
+            </div>
+        </div>
+    }
+}
+<br />
+@if (tasks != null)
+{
+    <h3>Tasks
+        @if (selectedProjectId != null)
+        {
+            <span class="fs-6 text-muted">
+                (Project: @projects?.FirstOrDefault(p => p.Id == selectedProjectId)?.Name)
+            </span>
+        }
+    </h3>
+    
+    @foreach (var task in tasks)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <h5 class="mb-3">@task.Title</h5>
+                <p class="mb-1"><span class="fw-bold">Status</span>: @task.Status</p>
+                <p class="mb-1"><span class="fw-bold">Description</span>: @(string.IsNullOrWhiteSpace(task.Description) ? "Not Specified" : task.Description)</p>
+                <p class="mb-1"><span class="fw-bold">Due Date</span>: @(task.DueDate?.ToString("dd/MM/yyyy") ?? "Not Specified")</p>
+                <p class="mb-2 text-muted" style="font-size: 0.8rem">Created At: @task.CreatedAt.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    }
+}
 
-Welcome to your new app.
+@code {
+    private List<ProjectDto>? projects;
+
+    // built in function that initialize on page load
+    protected override async Task OnInitializedAsync() 
+    {
+        // call API to retrieve the project data, then assign to <ProjectDto> projects
+        projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
+            "http://localhost:5285/api/projects");
+    }
+
+    private List<TaskDto>? tasks;
+    private int? selectedProjectId;
+
+    private async Task LoadTasks(int projectId)
+    {
+        selectedProjectId = projectId;
+
+        tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
+            $"http://localhost:5285/api/projects/{projectId}/tasks");
+    }
+}
