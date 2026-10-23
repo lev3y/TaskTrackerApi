@@ -127,14 +127,28 @@ else
     protected override async Task OnInitializedAsync() 
     {
         // call API to retrieve the project data, then assign to <ProjectDto> projects
-        projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
-            "http://localhost:5285/api/projects");
+        try
+        {
+            projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
+                "http://localhost:5285/api/projects");
+        }
+        catch (HttpRequestException ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Failed to load projects: {ex.Message}");
+        }
     }
 
     private async Task ReloadProjects()
     {
-        projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
-            "http://localhost:5285/api/projects");
+        try
+        {
+            projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
+                "http://localhost:5285/api/projects");
+        }
+        catch (HttpRequestException ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Failed to reload projects: {ex.Message}");
+        }
     }
 
     private async Task ReloadTasks(int? projectId)
@@ -143,8 +157,17 @@ else
         {
             return;
         }
-        tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
+
+        try
+        {
+            tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
                 $"http://localhost:5285/api/projects/{projectId}/tasks");
+        }
+        catch (HttpRequestException ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Failed to reload tasks: {ex.Message}");
+        }
+        
     }
 
     private List<TaskDto>? tasks;
@@ -213,6 +236,13 @@ else
             await ReloadTasks(selectedProjectId);
             CloseTaskForm();
         }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                $"Failed to add task. Status code: {(int)response.StatusCode}"
+            );
+        }
     }
 
     // Update task
@@ -239,6 +269,13 @@ else
             await ReloadProjects();
             await ReloadTasks(selectedProjectId);
             CloseTaskForm();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                $"Failed to update task. Status code: {(int)response.StatusCode}"
+            );
         }
     }
 
@@ -270,6 +307,13 @@ else
         {
             await ReloadProjects();
             await ReloadTasks(selectedProjectId);
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                $"Failed to delete task. Status code: {(int)response.StatusCode}"
+            );
         }
     }
 }
