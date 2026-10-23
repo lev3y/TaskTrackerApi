@@ -6,7 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddHttpClient();
+builder.Services.AddScoped(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = configuration["ApiBaseUrl"];
+
+    return new HttpClient
+    {
+        BaseAddress = new Uri(baseUrl!)
+    };
+});
 
 var app = builder.Build();
 

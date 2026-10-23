@@ -130,7 +130,7 @@ else
         try
         {
             projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
-                "http://localhost:5285/api/projects");
+                "api/projects");
         }
         catch (HttpRequestException ex)
         {
@@ -143,7 +143,7 @@ else
         try
         {
             projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
-                "http://localhost:5285/api/projects");
+                "api/projects");
         }
         catch (HttpRequestException ex)
         {
@@ -161,7 +161,7 @@ else
         try
         {
             tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
-                $"http://localhost:5285/api/projects/{projectId}/tasks");
+                $"api/projects/{projectId}/tasks");
         }
         catch (HttpRequestException ex)
         {
@@ -178,7 +178,7 @@ else
         selectedProjectId = projectId;
 
         tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
-            $"http://localhost:5285/api/projects/{projectId}/tasks");
+            $"api/projects/{projectId}/tasks");
     }
 
     // Task Form
@@ -220,7 +220,7 @@ else
         }
 
         var response = await Http.PostAsJsonAsync(
-            $"http://localhost:5285/api/projects/{selectedProjectId}/tasks",
+            $"api/projects/{selectedProjectId}/tasks",
             new
             {
                 Title = newTaskTitle,
@@ -254,7 +254,7 @@ else
         }
 
         var response = await Http.PutAsJsonAsync(
-            $"http://localhost:5285/api/tasks/{editingTaskId}",
+            $"api/tasks/{editingTaskId}",
             new
             {
                 Title = newTaskTitle,
@@ -301,7 +301,7 @@ else
         }
 
         var response = await Http.DeleteAsync(
-            $"http://localhost:5285/api/tasks/{taskId}");
+            $"api/tasks/{taskId}");
 
         if (response.IsSuccessStatusCode)
         {
