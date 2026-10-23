@@ -56,6 +56,9 @@ else
                 <p class="mb-2 text-muted" style="font-size: 0.8rem">Created At: @task.CreatedAt.ToString("dd/MM/yyyy")</p>
             </div>
             <div class="d-flex gap-2 mx-3 mb-3">
+                <button class="btn btn-warning btn-sm flex-fill" @onclick="() => OpenEditTaskForm(task)">
+                    Edit
+                </button>
                 <button class="btn btn-danger btn-sm flex-fill" @onclick="() => DeleteTask(task.Id)">
                     Delete
                 </button>
@@ -64,17 +67,17 @@ else
     }
 }
 
-@if (showAddTaskForm)
+@if (showTaskForm)
 {
     <div class="modal d-block" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Task</h5>
-                    <button type="button" class="btn-close"@onclick="CloseAddTaskForm"></button>
+                    <h5 class="modal-title">@(editingTaskId == null ? "Add Task" : "Edit Task")</h5>
+                    <button type="button" class="btn-close"@onclick="CloseTaskForm"></button>
                 </div>
 
-                <form @onsubmit="AddTask" @onsubmit:preventDefault>
+                <form @onsubmit="SaveTask" @onsubmit:preventDefault>
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Title</label>
@@ -102,11 +105,11 @@ else
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CloseAddTaskForm">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseTaskForm">
                             Cancel
                         </button>
                         <button type="submit" class="btn btn-success">
-                            Add Task
+                            @(editingTaskId == null ? "Add Task" : "Save Changes")
                         </button>
                     </div> 
                 </form>
@@ -156,26 +159,38 @@ else
     }
 
     // Task Form
+    private int? editingTaskId;
     private string newTaskTitle = string.Empty;
     private string newTaskDescription = string.Empty;
     private string newTaskStatus = "Todo";
     private DateTime? newTaskDueDate;
-    private bool showAddTaskForm = false;
+    private bool showTaskForm = false;
     private void OpenAddTaskForm()
     {
         newTaskTitle = string.Empty;
         newTaskDescription = string.Empty;
         newTaskStatus = "Todo";
         newTaskDueDate = null;
-        showAddTaskForm = true;
+        showTaskForm = true;
 
         StateHasChanged();
     }
-    private void CloseAddTaskForm()
+    private void CloseTaskForm()
     {
-        showAddTaskForm = false;
+        showTaskForm = false;
+        editingTaskId = null;
     }
-    
+
+    private void OpenEditTaskForm(TaskDto task)
+    {
+        editingTaskId = task.Id;
+        newTaskTitle = task.Title;
+        newTaskDescription = task.Description ?? string.Empty;
+        newTaskStatus = task.Status;
+        newTaskDueDate = task.DueDate;
+        showTaskForm = true;
+    }
+
     private async Task AddTask()
     {
         if (string.IsNullOrWhiteSpace(newTaskTitle) || selectedProjectId == null)
@@ -198,7 +213,46 @@ else
         {
             await ReloadProjects();
             await ReloadTasks(selectedProjectId);
-            CloseAddTaskForm();
+            CloseTaskForm();
+        }
+    }
+
+    // Update task
+    private async Task UpdateTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTaskTitle) || editingTaskId == null)
+        {
+            return;
+        }
+
+        var response = await Http.PutAsJsonAsync(
+            $"http://localhost:5285/api/tasks/{editingTaskId}",
+            new
+            {
+                Title = newTaskTitle,
+                Description = newTaskDescription,
+                Status = newTaskStatus,
+                DueDate = newTaskDueDate
+            }
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await ReloadProjects();
+            await ReloadTasks(selectedProjectId);
+            CloseTaskForm();
+        }
+    }
+
+    private async Task SaveTask()
+    {
+        if (editingTaskId == null)
+        {
+            await AddTask();
+        }
+        else
+        {
+            await UpdateTask();
         }
     }
 
