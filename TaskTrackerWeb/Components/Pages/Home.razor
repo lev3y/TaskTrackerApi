@@ -5,7 +5,9 @@
 @inject IJSRuntime JS
 
 <h3>Projects</h3>
-
+<button class="btn btn-success mb-3" @onclick="OpenAddProjectForm">
+    Add Project
+</button>
 @if (projects == null)
 {
     <p>Loading projects...</p>
@@ -17,7 +19,7 @@ else
         <div class="card mb-2">
             <div class="card-body">
                 <h5 class="mb-3">@project.Name</h5>
-                <p class="mb-1">@project.Description</p>
+                <p class="mb-1">@(string.IsNullOrWhiteSpace(project.Description) ? "No Description" : project.Description)</p>
                 <p class="mb-1">Tasks: @project.TotalTasks</p>
                 <p class="mb-2 text-muted" style="font-size: 0.8rem">Created At: @project.CreatedAt.ToString("dd/MM/yyyy")</p>
                 <button class="btn btn-primary" @onclick="() => LoadTasks(project.Id)">
@@ -65,6 +67,45 @@ else
             </div>
         </div>
     }
+}
+
+@if (showProjectForm)
+{
+    <div class="modal d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Project</h5>
+                    <button type="button" class="btn-close"@onclick="CloseProjectForm"></button>
+                </div>
+
+                <form @onsubmit="SaveProject" @onsubmit:preventDefault>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input class="form-control" @bind="newProjectName" required/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input class="form-control" @bind="newProjectDescription" />
+                        </div>  
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseProjectForm">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            Add Project
+                        </button>
+                    </div> 
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
 }
 
 @if (showTaskForm)
@@ -167,7 +208,7 @@ else
         {
             await JS.InvokeVoidAsync("alert", $"Failed to reload tasks: {ex.Message}");
         }
-        
+
     }
 
     private List<TaskDto>? tasks;
@@ -315,5 +356,55 @@ else
                 $"Failed to delete task. Status code: {(int)response.StatusCode}"
             );
         }
+    }
+
+    // Project Form
+    private string newProjectName = string.Empty;
+    private string newProjectDescription = string.Empty;
+    private bool showProjectForm = false;
+    private void OpenAddProjectForm()
+    {
+        newProjectName = string.Empty;
+        newProjectDescription = string.Empty;
+        showProjectForm = true;
+    }
+    private void CloseProjectForm()
+    {
+        showProjectForm = false;
+    }
+
+    private async Task AddProject()
+    {
+        if (string.IsNullOrWhiteSpace(newProjectName))
+        {
+            return;
+        }
+
+        var response = await Http.PostAsJsonAsync(
+            $"api/projects/",
+            new
+            {
+                Name = newProjectName,
+                Description = newProjectDescription
+            }
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            await ReloadProjects();
+            CloseProjectForm();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                $"Failed to add project. Status code: {(int)response.StatusCode}"
+            );
+        }
+    }
+
+    private async Task SaveProject()
+    {
+        await AddProject();
     }
 }
