@@ -22,12 +22,17 @@ else
                 <p class="mb-1">@(string.IsNullOrWhiteSpace(project.Description) ? "No Description" : project.Description)</p>
                 <p class="mb-1">Tasks: @project.TotalTasks</p>
                 <p class="mb-2 text-muted" style="font-size: 0.8rem">Created At: @project.CreatedAt.ToString("dd/MM/yyyy")</p>
-                <button class="btn btn-primary" @onclick="() => LoadTasks(project.Id)">
-                    View Tasks
-                </button>
-                <button class="btn btn-warning" @onclick="() => OpenEditProjectForm(project)">
-                    Edit
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary flex-fill" @onclick="() => LoadTasks(project.Id)">
+                        View Tasks
+                    </button>
+                    <button class="btn btn-warning flex-fill" @onclick="() => OpenEditProjectForm(project)">
+                        Edit
+                    </button>
+                    <button class="btn btn-danger flex-fill" @onclick="() => DeleteProject(project.Id)">
+                        Delete
+                    </button>
+                </div>
             </div>
         </div>
     }
@@ -456,6 +461,35 @@ else
         else
         {
             await UpdateProject();
+        }
+    }
+
+    // Delete project
+    private async Task DeleteProject(int projectId)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this project?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var response = await Http.DeleteAsync(
+            $"api/projects/{projectId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            await ReloadProjects();
+            if (tasks != null && tasks[0].ProjectId == projectId)
+            {
+                tasks = null;
+            }
+        }
+        else
+        {
+            await JS.InvokeVoidAsync(
+                "alert",
+                $"Failed to delete project. Status code: {(int)response.StatusCode}"
+            );
         }
     }
 }
