@@ -26,7 +26,9 @@ else
         </div>
     }
 }
+
 <br />
+
 @if (tasks != null)
 {
     <h3>Tasks
@@ -37,6 +39,10 @@ else
             </span>
         }
     </h3>
+
+    <button class="btn btn-success mb-3" @onclick="OpenAddTaskForm">
+        Add Task
+    </button>
     
     @foreach (var task in tasks)
     {
@@ -50,6 +56,59 @@ else
             </div>
         </div>
     }
+}
+
+@if (showAddTaskForm)
+{
+    <div class="modal d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Task</h5>
+                    <button type="button" class="btn-close"@onclick="CloseAddTaskForm"></button>
+                </div>
+
+                <form @onsubmit="AddTask" @onsubmit:preventDefault>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input class="form-control" @bind="newTaskTitle" required/>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <input class="form-control" @bind="newTaskDescription" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-control" @bind="newTaskDueDate" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" @bind="newTaskStatus">
+                                <option value="Todo">Todo</option>
+                                <option value="InProgress">In Progress</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseAddTaskForm">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            Add Task
+                        </button>
+                    </div> 
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
 }
 
 @code {
@@ -72,5 +131,56 @@ else
 
         tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
             $"http://localhost:5285/api/projects/{projectId}/tasks");
+    }
+
+    // Task Form
+    private string newTaskTitle = string.Empty;
+    private string newTaskDescription = string.Empty;
+    private string newTaskStatus = "Todo";
+    private DateTime? newTaskDueDate;
+    private bool showAddTaskForm = false;
+    private void OpenAddTaskForm()
+    {
+        newTaskTitle = string.Empty;
+        newTaskDescription = string.Empty;
+        newTaskStatus = "Todo";
+        newTaskDueDate = null;
+        showAddTaskForm = true;
+
+        StateHasChanged();
+    }
+    private void CloseAddTaskForm()
+    {
+        showAddTaskForm = false;
+    }
+    
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTaskTitle) || selectedProjectId == null)
+        {
+            return;
+        }
+
+        var response = await Http.PostAsJsonAsync(
+            $"http://localhost:5285/api/projects/{selectedProjectId}/tasks",
+            new
+            {
+                Title = newTaskTitle,
+                Description = newTaskDescription,
+                Status = newTaskStatus,
+                DueDate = newTaskDueDate
+            }
+        );
+
+        if (response.IsSuccessStatusCode)
+        {
+            CloseAddTaskForm();
+
+            tasks = await Http.GetFromJsonAsync<List<TaskDto>>(
+                $"http://localhost:5285/api/projects/{selectedProjectId}/tasks");
+
+            projects = await Http.GetFromJsonAsync<List<ProjectDto>>(
+                "http://localhost:5285/api/projects");
+        }
     }
 }
